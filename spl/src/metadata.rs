@@ -358,6 +358,36 @@ pub fn remove_creator_verification<'info>(
     Ok(())
 }
 
+pub fn unverify_collection<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, UnverifyCollection<'info>>,
+    collection_authority_record: Option<Pubkey>,
+) -> Result<()> {
+    let ix = mpl_token_metadata::instruction::unverify_collection(
+        mpl_token_metadata::ID,
+        *ctx.accounts.metadata.key,
+        *ctx.accounts.collection_authority.key,
+        *ctx.accounts.collection_mint.key,
+        *ctx.accounts.collection_metadata.key,
+        *ctx.accounts.collection_master_edition.key,
+        collection_authority_record,
+    );
+    solana_program::program::invoke_signed(
+        &ix,
+        &ToAccountInfos::to_account_infos(&ctx),
+        ctx.signer_seeds,
+    )
+    .map_err(Into::into)
+}
+
+#[derive(Accounts)]
+pub struct UnverifyCollection<'info> {
+    pub metadata: AccountInfo<'info>,
+    pub collection_authority: AccountInfo<'info>,
+    pub collection_mint: AccountInfo<'info>,
+    pub collection_metadata: AccountInfo<'info>,
+    pub collection_master_edition: AccountInfo<'info>,
+}
+
 #[derive(Accounts)]
 pub struct CreateMetadataAccountsV2<'info> {
     pub metadata: AccountInfo<'info>,

@@ -379,8 +379,40 @@ pub fn unverify_collection<'info>(
     .map_err(Into::into)
 }
 
+pub fn unverify_sized_collection_item<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, UnverifySizedCollection<'info>>,
+    collection_authority_record: Option<Pubkey>,
+) -> Result<()> {
+    let ix = mpl_token_metadata::instruction::unverify_sized_collection_item(
+        mpl_token_metadata::ID,
+        *ctx.accounts.metadata.key,
+        *ctx.accounts.collection_authority.key,
+        *ctx.accounts.payer.key,
+        *ctx.accounts.collection_mint.key,
+        *ctx.accounts.collection_metadata.key,
+        *ctx.accounts.collection_master_edition.key,
+        collection_authority_record,
+    );
+    solana_program::program::invoke_signed(
+        &ix,
+        &ToAccountInfos::to_account_infos(&ctx),
+        ctx.signer_seeds,
+    )
+    .map_err(Into::into)
+}
+
 #[derive(Accounts)]
 pub struct UnverifyCollection<'info> {
+    pub metadata: AccountInfo<'info>,
+    pub collection_authority: AccountInfo<'info>,
+    pub collection_mint: AccountInfo<'info>,
+    pub collection_metadata: AccountInfo<'info>,
+    pub collection_master_edition: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UnverifySizedCollection<'info> {
+    pub payer: AccountInfo<'info>,
     pub metadata: AccountInfo<'info>,
     pub collection_authority: AccountInfo<'info>,
     pub collection_mint: AccountInfo<'info>,
